@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<head>
+    <title>AI Model Setting</title>
+    <style>
+        /* ── All colors use --sf-* variables so every sfd theme is respected ── */
+
+        #popupSetting {
+            --st-sidebar-bg:    var(--sf-dark-3, #f5f5f5);
+            --st-sidebar-border:var(--sf-dark-4, #e0e0e0);
+            --st-content-bg:    var(--sf-dark-2, #ffffff);
+            --st-text:          var(--sf-text-bright, #212529);
+            --st-text-dim:      var(--sf-text-dim, #6c757d);
+            --st-hover-bg:      var(--sf-sidebar-hover-bg, rgba(0,0,0,.05));
+            --st-active-bg:     var(--sf-blue, #1890ff);
+            --st-active-text:   #ffffff;
+            --st-border:        var(--sf-dark-4, #dee2e6);
+            --st-input-bg:      var(--sf-dark, #ffffff);
+            --st-input-border:  var(--sf-dark-4, #ced4da);
+            --st-input-text:    var(--sf-text-bright, #212529);
+        }
+
+        #popupSetting .st-layout {
+            display: flex;
+            gap: 0;
+            min-height: 380px;
+            height: 100%;
+        }
+
+        /* ── Left sidebar ─────────────────────────────── */
+        #popupSetting .st-sidebar {
+            width: 190px;
+            flex-shrink: 0;
+            background: var(--st-sidebar-bg);
+            border-right: 1px solid var(--st-sidebar-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #popupSetting .st-sidebar-title {
+            padding: 10px 12px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--st-text-dim);
+            border-bottom: 1px solid var(--st-sidebar-border);
+            flex-shrink: 0;
+        }
+
+        #popupSetting .st-tree {
+            list-style: none;
+            padding: 4px 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Provider group header */
+        #popupSetting .st-group-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--st-text-dim);
+            cursor: pointer;
+            user-select: none;
+        }
+        #popupSetting .st-group-header:hover { color: var(--st-text); }
+        #popupSetting .st-expand-icon {
+            font-size: 9px;
+            transition: transform .18s;
+            display: inline-block;
+        }
+        #popupSetting .st-group-header.expanded .st-expand-icon {
+            transform: rotate(90deg);
+        }
+
+        /* Provider children list */
+        #popupSetting .st-group-children {
+            display: none;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 4px;
+        }
+        #popupSetting .st-group-header.expanded + .st-group-children {
+            display: block;
+        }
+
+        /* Individual model item */
+        #popupSetting .st-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px 6px 22px;
+            font-size: 12.5px;
+            color: var(--st-text-dim);
+            cursor: pointer;
+            position: relative;
+            transition: background .12s, color .12s;
+            border-radius: 0;
+        }
+        #popupSetting .st-item:hover {
+            background: var(--st-hover-bg);
+            color: var(--st-text);
+        }
+        #popupSetting .st-item.active {
+            background: var(--st-active-bg);
+            color: var(--st-active-text);
+            font-weight: 500;
+        }
+        #popupSetting .st-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: rgba(255,255,255,.6);
+            border-radius: 0 2px 2px 0;
+        }
+        #popupSetting .st-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        #popupSetting .st-item-del {
+            width: 18px;
+            height: 18px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 18px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity .15s;
+            flex-shrink: 0;
+            border-radius: 3px;
+        }
+        #popupSetting .st-item:hover .st-item-del { opacity: 1; }
+        #popupSetting .st-item.active .st-item-del { opacity: .7; color: #fca5a5; }
+        #popupSetting .st-item-del:hover { background: rgba(239,68,68,.2); opacity: 1 !important; }
+
+        /* ── Right content ────────────────────────────── */
+        #popupSetting .st-content {
+            flex: 1;
+            min-width: 0;
+            padding: 16px 20px;
+            overflow-y: auto;
+            background: var(--st-content-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #popupSetting .st-content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+        #popupSetting .st-content-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--st-text);
+            margin: 0;
+        }
+
+        /* ── Form ─────────────────────────────────────── */
+        #popupSetting .st-form {
+            flex: 1;
+        }
+        #popupSetting .st-field {
+            margin-bottom: 12px;
+        }
+        #popupSetting .st-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--st-text-dim);
+        }
+        #popupSetting .st-label .req { color: #ef4444; }
+
+        #popupSetting .st-input,
+        #popupSetting .st-select,
+        #popupSetting .st-textarea {
+            width: 100%;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: var(--st-input-text);
+            background: var(--st-input-bg);
+            border: 1px solid var(--st-input-border);
+            border-radius: 4px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        #popupSetting .st-input:focus,
+        #popupSetting .st-select:focus,
+        #popupSetting .st-textarea:focus {
+            border-color: var(--sf-blue, #1890ff);
+            box-shadow: 0 0 0 2px rgba(24,144,255,.18);
+        }
+        #popupSetting .st-textarea {
+            resize: vertical;
+            min-height: 72px;
+        }
+
+        /* ── Notification ─────────────────────────────── */
+        #popupSetting .st-notify {
+            display: none;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            border: 1px solid;
+        }
+        #popupSetting .st-notify.show { display: block; }
+        #popupSetting .st-notify.success {
+            background: rgba(34,197,94,.12);
+            color: #16a34a;
+            border-color: rgba(34,197,94,.3);
+        }
+        #popupSetting .st-notify.error {
+            background: rgba(239,68,68,.12);
+            color: #dc2626;
+            border-color: rgba(239,68,68,.3);
+        }
+
+        /* Sand theme overrides (light background — active item needs blue text) */
+        body.sf-theme-sand #popupSetting {
+            --st-sidebar-bg:    #f0f4f8;
+            --st-sidebar-border:#d1d9e0;
+            --st-content-bg:    #ffffff;
+            --st-text:          #1e293b;
+            --st-text-dim:      #64748b;
+            --st-hover-bg:      rgba(0,0,0,.05);
+            --st-active-bg:     #2563eb;
+            --st-active-text:   #ffffff;
+            --st-border:        #d1d9e0;
+            --st-input-bg:      #ffffff;
+            --st-input-border:  #cbd5e1;
+            --st-input-text:    #1e293b;
+        }
+        body.sf-theme-sand #popupSetting .st-notify.success {
+            color: #15803d;
+        }
+        body.sf-theme-sand #popupSetting .st-notify.error {
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-body" style="padding: 0; overflow: hidden;">
+        <div id="popupSetting">
+            <div class="st-layout">
+
+                <!-- ── Left sidebar ── -->
+                <div class="st-sidebar">
+                    <div class="st-sidebar-title">
+                        <span class="lang" as="aimodel">AI Models</span>
+                    </div>
+                    <ul class="st-tree" id="setting-tree">
+                        <ul class="st-group-children" id="ai-model-provider-children" style="display:block;">
+                            <!-- filled dynamically -->
+                        </ul>
+                    </ul>
+                </div>
+
+                <!-- ── Right content ── -->
+                <div class="st-content">
+                    <div class="st-content-header">
+                        <h4 class="st-content-title" id="st-panel-title">
+                            <span class="lang" as="aimodel">AI Model</span>
+                        </h4>
+                        <button type="button" class="btn btn-primary btn-sm" id="add-new-btn">
+                            <span class="lang" as="addnew">Add New</span>
+                        </button>
+                    </div>
+
+                    <div class="st-notify" id="notification"></div>
+
+                    <form id="setting-form" class="st-form">
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="modelprovider"></span>
+                                <span class="req">*</span>
+                            </div>
+                            <select id="model-provider" class="st-select" required>
+                                <option value="">--</option>
+                                <option value="QWen">QWen (通义千问)</option>
+                                <option value="DeepSeek">DeepSeek</option>
+                                <option value="OpenAI">OpenAI</option>
+                                <option value="Azure OpenAI">Azure OpenAI</option>
+                                <option value="Anthropic">Anthropic (Claude)</option>
+                                <option value="Google">Google (Gemini)</option>
+                                <option value="Baidu">Baidu (文心一言)</option>
+                                <option value="Alibaba">Alibaba (通义千问)</option>
+                                <option value="Moonshot">Moonshot (月之暗面)</option>
+                                <option value="Zhipu">Zhipu (智谱AI)</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="modelname"></span>
+                            </div>
+                            <input type="text" id="model-name" class="st-input" placeholder="e.g. deepseek-v3, gpt-4o" />
+                        </div>
+
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="modeltype"></span>
+                                <span class="req">*</span>
+                            </div>
+                            <select id="model-type" class="st-select" required>
+                                <option value="">--</option>
+                                <option value="text_generation">Text Generation</option>
+                                <option value="multimodal">Multimodal</option>
+                                <option value="reasoning_model">Reasoning Model</option>
+                                <option value="audio_speech">Audio / Speech</option>
+                                <option value="video_generation">Video Generation</option>
+                                <option value="image_generation">Image Generation</option>
+                                <option value="vector_model">Vector Model</option>
+                                <option value="ranking_model">Ranking Model</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="baseurl"></span>
+                                <span class="req">*</span>
+                            </div>
+                            <input type="text" id="base-url" class="st-input" placeholder="e.g. https://api.openai.com/v1" required />
+                        </div>
+
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="apikey"></span>
+                                <span class="req">*</span>
+                            </div>
+                            <input type="password" id="api-key" class="st-input" placeholder="Enter your API key"
+                                   autocomplete="off" data-password-autocomplete="off" required />
+                        </div>
+
+                        <div class="st-field">
+                            <div class="st-label">
+                                <span class="lang" as="description"></span>
+                            </div>
+                            <textarea id="description" class="st-textarea" rows="3" placeholder="Optional description"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+            </div><!-- /.st-layout -->
+        </div><!-- /#popupSetting -->
+    </div>
+
+    <div class="modal-footer d-flex align-items-center" style="gap:12px;">
+        <!-- Left: test connection -->
+        <div style="flex:1; display:flex; align-items:center; gap:10px;">
+            <button type="button" class="btn btn-info btn-sm" id="test-btn">
+                <span class="lang" as="test.connection">Test Connection</span>
+            </button>
+            <div id="test-result" style="display:none; font-size:13px; max-width:420px; word-wrap:break-word;">
+                <span id="test-result-icon" style="margin-right:4px;"></span>
+                <span id="test-result-text"></span>
+            </div>
+        </div>
+        <!-- Right: action buttons -->
+        <div style="display:flex; gap:8px; flex-shrink:0;">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">
+                <span class="lang" as="cancel">Cancel</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="save-btn">
+                <span class="lang" as="save">Save</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="test-result-details"
+         style="display:none; margin:0 16px 8px; padding:8px 12px; font-size:12px;
+                border-radius:4px; max-height:120px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word;">
+    </div>
+
+    <script type="text/javascript">
+        $(function () {
+            kresource.localize();
+
+            // Wait for setting module
+            var attempts = 0;
+            var iv = setInterval(function () {
+                if (typeof window.setting !== 'undefined' && typeof window.setting.init === 'function') {
+                    window.setting.init();
+                    clearInterval(iv);
+                } else if (++attempts >= 50) {
+                    console.error('Setting module not available');
+                    clearInterval(iv);
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

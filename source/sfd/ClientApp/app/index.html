@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slickflow.AI Designer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="vendor/bootstrap5-dialog/dist/css/bootstrap-dialog.css" />
+    <link rel="stylesheet" href="vendor/bpmn-js/assets/diagram-js.css" />
+    <link rel="stylesheet" href="vendor/bpmn-js/assets/bpmn-js.css" />
+    <link rel="stylesheet" href="vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+    <link rel="stylesheet" href="vendor/bpmn-js-properties-panel/assets/properties-panel.css" />
+    <link rel="stylesheet" href="vendor/fortawesome/fontawesome-free/css/all.min.css" />
+
+    <!-- CodeMirror base styles and themes (for Code Studio, Import XML, Rule Set, etc.) -->
+    <link rel="stylesheet" href="vendor/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="vendor/codemirror/theme/monokai.css" />
+    <link rel="stylesheet" href="vendor/codemirror/theme/eclipse.css" />
+
+    <link rel="stylesheet" href="css/app.css?v=1.0.4" />
+</head>
+<body>
+    <!-- Flash-free theme/font restore (must run before first paint) -->
+    <script>(function(){
+      var r=document.documentElement;
+      var t=localStorage.getItem('sf-theme');
+      if(t)document.body.classList.add('sf-theme-'+t);
+      var f=localStorage.getItem('sf-font-family');
+      var s=localStorage.getItem('sf-font-size');
+      var a=localStorage.getItem('sf-accent-color');
+      if(f)r.style.setProperty('--sf-font-family',f);
+      if(s)r.style.setProperty('--sf-font-size',s);
+      if(a){
+        r.style.setProperty('--sf-blue',a);
+        var h=a.replace('#','');
+        var rv=parseInt(h.slice(0,2),16),gv=parseInt(h.slice(2,4),16),bv=parseInt(h.slice(4,6),16);
+        r.style.setProperty('--sf-glow','rgba('+rv+','+gv+','+bv+',.25)');
+      }
+      /* Restore AI 助手颜色 */
+      var MOL={
+        blue:{'--sf-mol-bg':'rgba(18,48,110,0.82)','--sf-mol-bg-hover':'rgba(22,60,140,0.92)','--sf-mol-border':'rgba(99,155,255,0.38)','--sf-mol-shadow':'rgba(18,48,110,0.40)','--sf-mol-chat-border':'rgba(59,100,220,0.28)','--sf-mol-user-bubble':'rgba(18,48,110,0.38)','--sf-mol-user-bubble-b':'rgba(59,100,220,0.35)','--sf-mol-typing-dot':'rgba(99,155,255,0.88)','--sf-mol-send-bg':'rgba(18,48,110,0.88)','--sf-mol-send-hover':'rgba(22,60,140,1)','--sf-mol-scrollbar':'rgba(59,100,220,0.3)','--sf-mol-input-border':'rgba(59,100,220,0.3)','--sf-mol-input-focus':'rgba(99,155,255,0.65)'},
+        purple:{'--sf-mol-bg':'rgba(88,28,135,0.82)','--sf-mol-bg-hover':'rgba(107,33,168,0.9)','--sf-mol-border':'rgba(167,139,250,0.35)','--sf-mol-shadow':'rgba(88,28,135,0.35)','--sf-mol-chat-border':'rgba(109,40,217,0.28)','--sf-mol-user-bubble':'rgba(88,28,135,0.38)','--sf-mol-user-bubble-b':'rgba(109,40,217,0.35)','--sf-mol-typing-dot':'rgba(109,40,217,0.85)','--sf-mol-send-bg':'rgba(88,28,135,0.85)','--sf-mol-send-hover':'rgba(107,33,168,1)','--sf-mol-scrollbar':'rgba(109,40,217,0.3)','--sf-mol-input-border':'rgba(109,40,217,0.3)','--sf-mol-input-focus':'rgba(109,40,217,0.65)'},
+        teal:{'--sf-mol-bg':'rgba(30,80,55,0.82)','--sf-mol-bg-hover':'rgba(38,100,68,0.9)','--sf-mol-border':'rgba(120,200,160,0.38)','--sf-mol-shadow':'rgba(30,80,55,0.35)','--sf-mol-chat-border':'rgba(34,100,70,0.28)','--sf-mol-user-bubble':'rgba(30,80,55,0.38)','--sf-mol-user-bubble-b':'rgba(34,100,70,0.35)','--sf-mol-typing-dot':'rgba(50,160,100,0.85)','--sf-mol-send-bg':'rgba(30,80,55,0.85)','--sf-mol-send-hover':'rgba(38,100,68,1)','--sf-mol-scrollbar':'rgba(34,100,70,0.3)','--sf-mol-input-border':'rgba(34,100,70,0.3)','--sf-mol-input-focus':'rgba(50,160,100,0.65)'},
+        amber:{'--sf-mol-bg':'rgba(146,64,14,0.85)','--sf-mol-bg-hover':'rgba(180,83,9,0.9)','--sf-mol-border':'rgba(253,186,116,0.35)','--sf-mol-shadow':'rgba(146,64,14,0.35)','--sf-mol-chat-border':'rgba(217,119,6,0.28)','--sf-mol-user-bubble':'rgba(146,64,14,0.38)','--sf-mol-user-bubble-b':'rgba(217,119,6,0.35)','--sf-mol-typing-dot':'rgba(217,119,6,0.85)','--sf-mol-send-bg':'rgba(146,64,14,0.85)','--sf-mol-send-hover':'rgba(180,83,9,1)','--sf-mol-scrollbar':'rgba(217,119,6,0.3)','--sf-mol-input-border':'rgba(217,119,6,0.3)','--sf-mol-input-focus':'rgba(217,119,6,0.65)'},
+        gray:{'--sf-mol-bg':'rgba(55,65,81,0.85)','--sf-mol-bg-hover':'rgba(75,85,99,0.9)','--sf-mol-border':'rgba(156,163,175,0.35)','--sf-mol-shadow':'rgba(55,65,81,0.35)','--sf-mol-chat-border':'rgba(107,114,128,0.28)','--sf-mol-user-bubble':'rgba(55,65,81,0.38)','--sf-mol-user-bubble-b':'rgba(107,114,128,0.35)','--sf-mol-typing-dot':'rgba(107,114,128,0.85)','--sf-mol-send-bg':'rgba(55,65,81,0.85)','--sf-mol-send-hover':'rgba(75,85,99,1)','--sf-mol-scrollbar':'rgba(107,114,128,0.3)','--sf-mol-input-border':'rgba(107,114,128,0.3)','--sf-mol-input-focus':'rgba(107,114,128,0.65)'},
+        red:{'--sf-mol-bg':'rgba(153,27,27,0.82)','--sf-mol-bg-hover':'rgba(185,28,28,0.9)','--sf-mol-border':'rgba(252,165,165,0.35)','--sf-mol-shadow':'rgba(153,27,27,0.35)','--sf-mol-chat-border':'rgba(220,38,38,0.28)','--sf-mol-user-bubble':'rgba(153,27,27,0.38)','--sf-mol-user-bubble-b':'rgba(220,38,38,0.35)','--sf-mol-typing-dot':'rgba(220,38,38,0.85)','--sf-mol-send-bg':'rgba(153,27,27,0.85)','--sf-mol-send-hover':'rgba(185,28,28,1)','--sf-mol-scrollbar':'rgba(220,38,38,0.3)','--sf-mol-input-border':'rgba(220,38,38,0.3)','--sf-mol-input-focus':'rgba(220,38,38,0.65)'},
+        orange:{'--sf-mol-bg':'rgba(194,65,12,0.85)','--sf-mol-bg-hover':'rgba(234,88,12,0.92)','--sf-mol-border':'rgba(249,115,22,0.38)','--sf-mol-shadow':'rgba(194,65,12,0.40)','--sf-mol-chat-border':'rgba(234,88,12,0.28)','--sf-mol-user-bubble':'rgba(194,65,12,0.38)','--sf-mol-user-bubble-b':'rgba(234,88,12,0.35)','--sf-mol-typing-dot':'rgba(249,115,22,0.88)','--sf-mol-send-bg':'rgba(194,65,12,0.88)','--sf-mol-send-hover':'rgba(234,88,12,1)','--sf-mol-scrollbar':'rgba(234,88,12,0.3)','--sf-mol-input-border':'rgba(234,88,12,0.3)','--sf-mol-input-focus':'rgba(249,115,22,0.65)'}
+      };
+      var mid=localStorage.getItem('sf-mol-color')||'blue';
+      var mv=MOL[mid]||MOL.blue;
+      Object.keys(mv).forEach(function(k){r.style.setProperty(k,mv[k]);});
+    })();</script>
+    <!-- ── Left Sidebar ────────────────────────────────────────── -->
+    <div id="sf-sidebar" class="sf-sidebar">
+        <div class="sf-sidebar-logo">
+            <div class="sf-sidebar-logo-icon">S</div>
+            <span class="sf-sidebar-logo-text">Slickflow.AI</span>
+            <button class="sf-sidebar-collapse-btn" onclick="sfSidebarToggle()" data-title-as="sf.nav.collapse" title="收起侧栏">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </div>
+        <nav class="sf-sidebar-nav">
+            <div class="sf-nav-section lang" as="sf.nav.section.workflow"></div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openProcess()" data-title-as="sf.nav.processlist" title="流程列表">
+                <i class="bi bi-diagram-3"></i>
+                <span class="sf-nav-label lang" as="sf.nav.processlist"></span>
+            </div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openTemplateGallery()" data-title-as="sf.nav.templates" title="模板库">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span class="sf-nav-label lang" as="sf.nav.templates"></span>
+            </div>
+            <div class="sf-nav-section lang" as="sf.nav.section.tools"></div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openCodeStudio()" data-title-as="sf.nav.codestudio" title="代码工作室">
+                <i class="bi bi-code-square"></i>
+                <span class="sf-nav-label lang" as="sf.nav.codestudio"></span>
+            </div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openKnowledgeBase()" data-title-as="sf.nav.knowledgebase" title="知识库">
+                <i class="bi bi-book"></i>
+                <span class="sf-nav-label lang" as="sf.nav.knowledgebase"></span>
+            </div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openRuleSetEditor()" data-title-as="sf.nav.ruleset" title="规则集">
+                <i class="bi bi-braces"></i>
+                <span class="sf-nav-label lang" as="sf.nav.ruleset"></span>
+            </div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openSetting()" data-title-as="sf.nav.aillm" title="AI 大模型">
+                <i class="bi bi-robot"></i>
+                <span class="sf-nav-label lang" as="sf.nav.aillm"></span>
+            </div>
+            <div class="sf-nav-section lang" as="sf.nav.settings"></div>
+            <div class="sf-nav-item" onclick="kmain && kmain.openThemeSetting()" data-title-as="sf.nav.theme" title="主题设置">
+                <i class="bi bi-palette2"></i>
+                <span class="sf-nav-label lang" as="sf.nav.theme"></span>
+            </div>
+        </nav>
+        <div class="sf-sidebar-footer">
+            <div class="sf-nav-item" style="cursor: default; opacity: 0.5; pointer-events: none;">
+                <i class="bi bi-app-indicator"></i>
+                <span class="sf-nav-label" style="font-size: 11px;">Slickflow.AI v5.0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Sidebar expand tab (visible only when sidebar is collapsed) ── -->
+    <button id="sf-sidebar-expander" onclick="sfSidebarToggle()" data-title-as="sf.nav.expand" title="展开侧栏">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <!-- ── Theme Picker Panel ─────────────────────────────────── -->
+    <div id="sf-theme-panel" class="sf-theme-panel">
+        <div class="sf-theme-panel-title">外观主题</div>
+        <div class="sf-theme-swatches">
+            <div class="sf-theme-swatch" data-theme=""       title="深海黑" style="background:#1C1917;"></div>
+            <div class="sf-theme-swatch" data-theme="blue"   title="极夜蓝" style="background:#0D1B2E;"></div>
+            <div class="sf-theme-swatch" data-theme="green"  title="暗森绿" style="background:#0C1A10;"></div>
+            <div class="sf-theme-swatch" data-theme="purple" title="深空紫" style="background:#160D24;"></div>
+            <div class="sf-theme-swatch" data-theme="red"    title="暮光红" style="background:#1F0D0D;"></div>
+            <div class="sf-theme-swatch" data-theme="sand"   title="暖沙白" style="background:#F5F0E8;border:1px solid #ccc;"></div>
+        </div>
+        <div class="sf-theme-labels">
+            <span>深海黑</span><span>极夜蓝</span><span>暗森绿</span>
+            <span>深空紫</span><span>暮光红</span><span>暖沙白</span>
+        </div>
+    </div>
+
+    <div class="row top-toolbar">
+        <div style="float:left;">
+            <a href="#" class="btn btn-info" id="btnCreateProcess"><span class="bi bi-file-earmark lang" as="new"> </span> </a>
+            <a href="#" class="btn btn-info" id="btnOpenProcess"><span class="bi bi-folder lang" as="open"> </span></a>
+            <a href="#" class="btn btn-info" id="btnSaveProcess"><span class="bi bi-check-lg lang" as="save"> </span></a>
+        </div>
+        <div class="dropdown" style="float:left;margin-left:5px;">
+            <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLinkModeling" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="bi bi-diagram-3 lang" as="modeling"> </span><span class="caret"></span>
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLinkModeling">
+                <a class="dropdown-item" href="#" onclick="kmain.openTemplateGallery();"><span class="lang" as="templategallery"></span></a>
+                <a class="dropdown-item" href="#" onclick="kmain.openCodeStudio();"><span class="lang" as="codestudio"></span></a>
+                <a class="dropdown-item" href="#" onclick="kmain.openRuleSetEditor();"><span class="lang" as="ruleset"></span></a>
+            </div>
+        </div>
+        <div class="dropdown" style="float:left;margin-left:5px;">
+            <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLinkOptions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="bi bi-shuffle lang" as="test"> </span><span class="caret"></span>
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLinkOptions">
+                <a class="dropdown-item" href="#"><span class="lang" as="simutest" onclick="kmain.simuTest();"></span></a>
+                <li class="divider">&nbsp;</li>
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <span class="lang" as="slickflowdemo"></span> &raquo;
+                    </a>
+                    <ul class="dropdown-menu dropdown-submenu">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('sequence');"><span class="lang" as="wf-sequence"></span></a>
+                        </li>
+                        <li class="divider">&nbsp;</li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('andsplit');"><span class="lang" as="wf-andsplit"></span></a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('orsplit');"><span class="lang" as="wf-orsplit"></span></a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('xorsplit');"><span class="lang" as="wf-xorsplit"></span></a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('approvalorsplit');"><span class="lang" as="wf-approvalorsplit"></span></a>
+                        </li>
+                        <li class="divider">&nbsp;</li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('eorjoinbranchcount');"><span class="lang" as="wf-eorjoinbranchcount"></span></a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('eorjoinbranchforced');"><span class="lang" as="wf-eorjoinbranchforced"></span></a>
+                        </li>
+                        <li class="divider">&nbsp;</li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('startconditional');"><span class="lang" as="wf-startconditional"></span></a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('startsplit');"><span class="lang" as="wf-startsplit"></span></a>
+                        </li>
+                        <li class="divider">&nbsp;</li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="kmain.openDemo('misequence');"><span class="lang" as="wf-misequence"></span></a>
+                        </li>
+                    </ul>
+                </li>
+            </div>
+        </div>
+        <div class="dropdown" style="float:left;margin-left: 5px;">
+            <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLinkTool" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="bi bi-wrench lang" as="tools"> </span><span class="caret"></span>
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLinkTool">
+                <a class="dropdown-item" href="#"><span class="lang" as="importxml" onclick="kmain.importDiagram();"></span></a>
+                <!--<a class="dropdown-item" href="#"><span class="lang" as="importmxgraphxml" onclick="kmain.importMxGraphDiagram();"></span></a>-->
+                <li class="divider">&nbsp;</li>
+                <a class="dropdown-item" href="#"><span class="lang" as="content" onclick="kmain.previewXml();"></span></a>
+                <li class="divider">&nbsp;</li>
+                <a class="dropdown-item" href="#" id="btnValidateProcess"><span class="lang" as="validate"></span></a>
+                <li class="divider">&nbsp;</li>
+                <a class="dropdown-item" href="#"><span class="lang" as="setting" onclick="kmain.openSetting();"></span></a>
+                <li class="divider">&nbsp;</li>
+                <a class="dropdown-item" href="#"><span class="lang" as="knowledgebase" onclick="kmain.openKnowledgeBase();"></span></a>
+
+                <!--
+                <a class="dropdown-item" href="#"><span class="lang" as="adminboard" onclick="kmain.webJob();"></span></a>-->
+            </div>
+        </div>
+        <div class="dropdown" style="float:left;margin-left: 5px;">
+            <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLinkOptions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="bi bi-grid lang" as="options"> </span><span class="caret"></span>
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLinkOptions">
+                <a class="dropdown-item" href="#"><span class="lang" as="en" onclick="kmain.changeLang('en');"></span></a>
+                <li class="divider">&nbsp;</li>
+                <a class="dropdown-item" href="#"><span class="lang" as="zh" onclick="kmain.changeLang('zh');"></span></a>
+            </div>
+        </div>
+        <div style="float:left;margin-left: 5px;">
+            <a href="#" class="btn btn-info" id="btnHelp"><span class="bi bi-info-circle lang" as="help"> </span> </a>
+        </div>
+    </div>
+
+    <!--Include bootstrap progress bar in div. -->
+    <div class="progress progress-striped active">
+        <div class="progress-bar progress-bar-success"
+             style="width: 0%">
+        </div>
+    </div>
+
+    <div class="content" id="js-drop-zone">
+
+        <div class="message intro">
+            <div class="note">
+                <a id="js-open-process-list" href role="button"><span class="lang" as="choosefromprocesslist"></span></a> <span class="lang" as="oryoucan"></span>
+                <a id="js-create-diagram" href><span class="lang" as="createnewdiagram"></span></a> <span class="lang" as="togetstarted"></span>
+            </div>
+        </div>
+
+        <div class="message error">
+            <div class="note">
+                <p>Ooops, we could not display the BPMN 2.0 diagram.</p>
+
+                <div class="details">
+                    <span>cause of the problem</span>
+                    <pre></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas" id="js-canvas"></div>
+
+        <!-- Properties panel wrapper with collapse toggle — collapsed by default -->
+        <div id="js-panel-wrapper" class="panel-collapsed">
+            <button id="js-panel-toggle" title="收起/展开属性面板" onclick="sfPanelToggle()">
+                <span id="js-panel-toggle-icon">&#8250;</span>
+            </button>
+            <div id="js-properties-panel"></div>
+        </div>
+
+        <!-- ai dialog -->
+        <div id="aiDialog" class="dialog-container" style="display:none;">
+            <div class="dialog-header">
+                <div class="dialog-title lang" as="aiassistant"></div>
+                <div class="header-actions">
+                    <div class="hint-icon">
+                        <button class="btn hint-btn" title="Tips">i</button>
+                        <div class="hint-box">
+                            <div class="hint-title lang" as="promptionhint"></div>
+                            <div class="markdown-content">
+                                <h2 class="lang" as="processdescription"></h2>
+                                <p class="lang" as="processsummary"></p>
+
+                                <h2 class="lang" as="ruledescription"></h2>
+                                <ol>
+                                    <li>
+                                        <strong class="lang" as="ticketamountless"></strong>
+                                        <span class="lang" as="deptmanagerapproval"></span>
+                                    </li>
+                                    <li>
+                                        <strong class="lang" as="ticketamountmore"></strong>
+                                        <span class="lang" as="generalmanagerapproval"></span>
+                                    </li>
+                                    <li>
+                                        <strong class="lang" as="finalapproval"></strong>
+                                        <span class="lang" as="finacialmanagersign"></span>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-close" onclick="closeDialog()">x</button>
+                </div>
+            </div>
+            <div class="progress-container-ai" id="progressBar">
+                <div class="progress-bar-ai"></div>
+            </div>
+            <div class="dialog-content">
+                <textarea class="text-area"
+                          placeholder=""
+                          id="userInput"></textarea>
+                <div class="response-area" id="responseArea">
+                    <!-- 响应内容将显示在这里 -->
+                </div>
+                <div class="button-group">
+                    <button id="sendButton" class="btn btn-primary lang" as="send" onclick="sendRequest()"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 实际使用的底部操作面板 -->
+    <div id="aiButtonPanel" class="bottom-panel" draggable="true">
+        <div class="panel-buttons">
+            <button class="panel-button disabled" id="aiNodeConfigButton" disabled>
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="fas fa-cog"></i></div>
+                    <div class="btn-text lang" as="ainodesetting"></div>
+                </div>
+            </button>
+            <button class="panel-button" id="downloadXmlButton">
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="far fa-file-text"></i></div>
+                    <div class="btn-text lang" as="downloadxml"></div>
+                </div>
+            </button>
+            <button class="panel-button" id="downloadSvgButton">
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="far fa-image"></i></div>
+                    <div class="btn-text lang" as="downloadsvg"></div>
+                </div>
+            </button>
+            <button class="panel-button" id="zoomInButton">
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="bi bi-zoom-out"></i></div>
+                    <div class="btn-text lang" as="zoomin"></div>
+                </div>
+            </button>
+            <button class="panel-button" id="zoomOutButton">
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="bi bi-zoom-in"></i></div>
+                    <div class="btn-text lang" as="zoomout"></div>
+                </div>
+            </button>
+            <button class="panel-button" id="tryButton">
+                <div class="btn-content">
+                    <div class="btn-icon"><i class="fas fa-play-circle"></i></div>
+                    <div class="btn-text lang" as="trytest"></div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import kconfig from './config/kconfig.js'
+        window.kconfig = kconfig;
+    </script>
+
+    <script type="module" src="index.js"></script>
+    <script type="text/javascript" src="vendor/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="vendor/codemirror/mode/clike/clike.js"></script>
+
+    <script type="text/javascript">
+        // 等待 jQuery 和 kresource 加载完成
+        // 由于 index.js 是 ES6 模块，需要等待模块加载完成
+        (function() {
+            var maxRetries = 100; // 最多重试 100 次（约 5 秒）
+            var retryCount = 0;
+            
+            function init() {
+                if (typeof window.$ !== 'undefined' && typeof window.kresource !== 'undefined') {
+                    $(function () {
+                        // Register tooltip sync BEFORE localize() so the callback fires
+                        // after the async JSON load completes (setTimeout(0) is too early)
+                        kresource.afterLocalizeCallbacks.push(function (json) {
+                            document.querySelectorAll('[data-title-as]').forEach(function (el) {
+                                var text = json[el.getAttribute('data-title-as')];
+                                if (text) el.title = text;
+                            });
+                            document.querySelectorAll('[data-placeholder-as]').forEach(function (el) {
+                                var text = json[el.getAttribute('data-placeholder-as')];
+                                if (text) el.placeholder = text;
+                            });
+                            document.querySelectorAll('[data-prompt-as]').forEach(function (el) {
+                                var text = json[el.getAttribute('data-prompt-as')];
+                                if (text) el.onclick = function () { sfMolQuickSend(text); };
+                            });
+                        });
+                        kresource.localize();
+                    });
+                } else if (retryCount < maxRetries) {
+                    // 如果还没加载完成，延迟重试
+                    retryCount++;
+                    setTimeout(init, 50);
+                } else {
+                    console.warn('Waiting for jQuery or kresource to load...', {
+                        hasJQuery: typeof window.$ !== 'undefined',
+                        hasKresource: typeof window.kresource !== 'undefined'
+                    });
+                }
+            }
+            
+            // 等待页面和模块加载完成
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(init, 100); // 额外延迟确保模块加载
+                });
+            } else {
+                setTimeout(init, 100); // 额外延迟确保模块加载
+            }
+        })();
+
+        // 标记是否正在处理请求
+        let isRequestInProgress = false;
+
+        // 重新启用发送按钮的函数
+        function enableSendButton() {
+            const sendButton = document.getElementById('sendButton');
+            if (sendButton) {
+                isRequestInProgress = false;
+                sendButton.disabled = false;
+                sendButton.style.opacity = '1';
+                sendButton.style.cursor = 'pointer';
+            }
+        }
+
+        async function sendRequest() {
+            // 如果请求正在进行中，直接返回
+            if (isRequestInProgress) {
+                return;
+            }
+
+            const input = document.getElementById('userInput');
+            const responseArea = document.getElementById('responseArea');
+            const sendButton = document.getElementById('sendButton');
+
+            if (!input.value.trim()) {
+                kmsgbox.info(kresource.getItem("aidialoginputnullwarnmsg"));
+                return;
+            }
+
+            // 标记请求开始，禁用按钮
+            isRequestInProgress = true;
+            sendButton.disabled = true;
+            sendButton.style.opacity = '0.6';
+            sendButton.style.cursor = 'not-allowed';
+
+            try {
+                responseArea.innerHTML = kresource.getItem("deepseekprocessingmsg");
+                kmain.createByAI(input.value, function () {
+                    input.value = '';
+                    responseArea.innerHTML = "";
+                    // 重新启用按钮（在回调中）
+                    enableSendButton();
+                    //close current pop window
+                    closeDialog();
+                });
+            } catch (error) {
+                kmsgbox.error(kresource.getItem("aidialogresponseerrormsg") + error.message);
+                // 如果出现异常，也要重新启用按钮
+                enableSendButton();
+            }
+        }
+
+        function closeDialog() {
+            // 如果对话框关闭时请求正在进行，重新启用按钮
+            if (isRequestInProgress) {
+                enableSendButton();
+            }
+            document.querySelector('.dialog-container').style.display = 'none';
+        }
+    </script>
+
+    <script>
+        /* ── Sidebar toggle ────────────────────────────────────────── */
+        (function () {
+            var KEY = 'sf-sidebar-collapsed';
+            if (localStorage.getItem(KEY) === '1') {
+                document.body.classList.add('sf-sidebar-collapsed');
+            }
+
+            window.sfSidebarToggle = function () {
+                var collapsed = document.body.classList.toggle('sf-sidebar-collapsed');
+                if (collapsed) {
+                    localStorage.setItem(KEY, '1');
+                } else {
+                    localStorage.removeItem(KEY);
+                }
+                setTimeout(function () {
+                    window.dispatchEvent(new Event('resize'));
+                }, 240);
+            };
+        })();
+
+        /* ── Theme Picker ──────────────────────────────────────────── */
+        (function () {
+            var THEME_KEY = 'sf-theme';
+            var ALL_THEMES = ['blue', 'green', 'purple', 'red', 'sand'];
+
+            function applyTheme(theme) {
+                ALL_THEMES.forEach(function (t) {
+                    document.body.classList.remove('sf-theme-' + t);
+                });
+                if (theme) {
+                    document.body.classList.add('sf-theme-' + theme);
+                }
+                document.querySelectorAll('.sf-theme-swatch').forEach(function (el) {
+                    el.classList.toggle('active', el.dataset.theme === theme);
+                });
+            }
+
+            /* Restore saved theme immediately (no flash) */
+            var saved = localStorage.getItem(THEME_KEY) || '';
+            applyTheme(saved);
+
+            /* Expose toggle for sidebar button */
+            window.sfThemePanelToggle = function () {
+                var panel = document.getElementById('sf-theme-panel');
+                panel.classList.toggle('open');
+            };
+
+            /* Swatch click — delegate from panel */
+            document.addEventListener('click', function (e) {
+                var swatch = e.target.closest('.sf-theme-swatch');
+                if (swatch) {
+                    var theme = swatch.dataset.theme;
+                    applyTheme(theme);
+                    localStorage.setItem(THEME_KEY, theme);
+                    return;
+                }
+                /* Close panel on outside click */
+                var panel = document.getElementById('sf-theme-panel');
+                if (panel && panel.classList.contains('open')) {
+                    if (!e.target.closest('#sf-theme-panel') && !e.target.closest('.sf-theme-trigger')) {
+                        panel.classList.remove('open');
+                    }
+                }
+            });
+        })();
+
+        /* ── Sub-menu toggle ───────────────────────────────────────── */
+        window.sfNavSubToggle = function (el) {
+            el.classList.toggle('sf-nav-open');
+        };
+
+        /* ── Properties Panel collapse toggle ─────────────────────── */
+        (function () {
+            var PANEL_KEY = 'sf-panel-expanded';
+            var PANEL_W   = 300;
+            var TOGGLE_W  = 28;
+
+            function sfPanelToggle() {
+                var wrapper = document.getElementById('js-panel-wrapper');
+                var canvas  = document.getElementById('js-canvas');
+                var collapsed = wrapper.classList.toggle('panel-collapsed');
+                canvas.style.right = collapsed ? TOGGLE_W + 'px' : PANEL_W + 'px';
+                if (collapsed) {
+                    localStorage.removeItem(PANEL_KEY);
+                } else {
+                    localStorage.setItem(PANEL_KEY, '1');
+                }
+                setTimeout(function () {
+                    window.dispatchEvent(new Event('resize'));
+                }, 240);
+            }
+
+            // HTML starts with panel-collapsed; only expand if user previously expanded.
+            var wrapper = document.getElementById('js-panel-wrapper');
+            var canvas  = document.getElementById('js-canvas');
+            if (localStorage.getItem(PANEL_KEY) === '1') {
+                if (wrapper) wrapper.classList.remove('panel-collapsed');
+                if (canvas)  canvas.style.right = PANEL_W + 'px';
+            }
+
+            function sfPanelExpand() {
+                var wrapper = document.getElementById('js-panel-wrapper');
+                var canvas  = document.getElementById('js-canvas');
+                if (wrapper && wrapper.classList.contains('panel-collapsed')) {
+                    wrapper.classList.remove('panel-collapsed');
+                    if (canvas) canvas.style.right = PANEL_W + 'px';
+                    localStorage.setItem(PANEL_KEY, '1');
+                    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 240);
+                }
+            }
+
+            window.sfPanelToggle = sfPanelToggle;
+            window.sfPanelExpand = sfPanelExpand;
+        })();
+    </script>
+
+    <!-- ── AI 流程助手悬浮球（分子助手风格，可拖拽） ──────────── -->
+    <div id="sf-mol-btn" class="sf-mol-btn sf-mol-btn--docked" data-title-as="mol.btn.title" title="AI 流程助手（可拖动）">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+            <!-- 顺时针流程弧：节点A(顶)→节点B(右下)→节点C(左下)→回A -->
+            <path d="M 24,8 A 16,16 0 0 1 38,32" stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M 38,32 A 16,16 0 0 1 10,32" stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M 10,32 A 16,16 0 0 1 24,8"  stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+            <!-- 三个流程节点（绘于弧线上方） -->
+            <circle cx="24" cy="8"  r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+            <circle cx="38" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+            <circle cx="10" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+            <!-- 流向箭头（弧的中点处）-->
+            <path d="M 35,13 L 40,18 L 34,20" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M 28,38 L 22,41 L 23,36" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M 8,19  L 12,12 L 16,17" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <!-- AI 光点 -->
+            <circle cx="44" cy="8" r="2"   fill="rgba(255,215,70,0.92)"/>
+            <circle cx="5"  cy="44" r="1.3" fill="rgba(160,100,255,0.72)"/>
+        </svg>
+        <span class="sf-mol-label lang" as="mol.label">流程AI</span>
+    </div>
+
+    <div id="sf-mol-chat" class="sf-mol-chat">
+        <div class="sf-mol-header">
+            <div class="sf-mol-header-left">
+                <div class="sf-mol-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                        <path d="M 24,8 A 16,16 0 0 1 38,32" stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 38,32 A 16,16 0 0 1 10,32" stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 10,32 A 16,16 0 0 1 24,8"  stroke="rgba(99,165,255,0.82)" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="24" cy="8"  r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="38" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="10" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <path d="M 35,13 L 40,18 L 34,20" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <path d="M 28,38 L 22,41 L 23,36" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <path d="M 8,19  L 12,12 L 16,17" stroke="rgba(165,215,255,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                </div>
+                <div class="sf-mol-title-group">
+                    <span class="sf-mol-name lang" as="mol.name">AI 流程助手</span>
+                    <span class="sf-mol-subtitle lang" as="mol.subtitle">工作流 AI · 在线</span>
+                </div>
+            </div>
+            <button class="sf-mol-close" id="sf-mol-close">✕</button>
+        </div>
+        <div class="sf-mol-messages" id="sf-mol-messages">
+            <div class="sf-mol-msg sf-mol-msg--bot">
+                <div class="sf-mol-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                        <path d="M 24,8 A 16,16 0 0 1 38,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 38,32 A 16,16 0 0 1 10,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 10,32 A 16,16 0 0 1 24,8"  stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="24" cy="8"  r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="38" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="10" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                    </svg>
+                </div>
+                <div class="sf-mol-bubble lang" as="mol.welcome">您好！我是 AI 流程助手，请描述您的业务场景，我将自动生成 BPMN 工作流程图。</div>
+            </div>
+            <div class="sf-mol-msg sf-mol-msg--bot">
+                <div class="sf-mol-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                        <path d="M 24,8 A 16,16 0 0 1 38,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 38,32 A 16,16 0 0 1 10,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M 10,32 A 16,16 0 0 1 24,8"  stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="24" cy="8"  r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="38" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                        <circle cx="10" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>
+                    </svg>
+                </div>
+                <div class="sf-mol-bubble sf-mol-bubble--sug">
+                    <div class="sf-mol-sug lang" as="mol.sug1" data-prompt-as="mol.sug1.prompt" onclick="sfMolQuickSend('生成一个员工请假审批流程')">📋 员工请假审批流程</div>
+                    <div class="sf-mol-sug lang" as="mol.sug2" data-prompt-as="mol.sug2.prompt" onclick="sfMolQuickSend('生成一个采购订单审批流程')">🛒 采购订单审批流程</div>
+                    <div class="sf-mol-sug lang" as="mol.sug3" data-prompt-as="mol.sug3.prompt" onclick="sfMolQuickSend('生成一个费用报销审批流程')">💰 费用报销审批流程</div>
+                </div>
+            </div>
+        </div>
+        <div class="sf-mol-footer">
+            <input type="text" id="sf-mol-input" class="sf-mol-input" data-placeholder-as="mol.input.placeholder" placeholder="描述您的业务流程需求…" />
+            <button class="sf-mol-send" id="sf-mol-send" onclick="sfMolSend()">&#10148;</button>
+        </div>
+    </div>
+
+    <script>
+    /* ── AI 流程助手悬浮球 + 聊天面板（参考分子助手设计） ─────── */
+    (function () {
+        var SF_MOL_FLOW_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">'
+            + '<path d="M 24,8 A 16,16 0 0 1 38,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>'
+            + '<path d="M 38,32 A 16,16 0 0 1 10,32" stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>'
+            + '<path d="M 10,32 A 16,16 0 0 1 24,8"  stroke="rgba(99,165,255,0.8)" stroke-width="2.2" stroke-linecap="round"/>'
+            + '<circle cx="24" cy="8"  r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>'
+            + '<circle cx="38" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>'
+            + '<circle cx="10" cy="32" r="4.5" fill="rgba(55,115,240,0.9)"  stroke="rgba(155,205,255,0.95)" stroke-width="1.8"/>'
+            + '</svg>';
+
+        var _dragEndTime = 0;
+
+        /* ── 拖拽逻辑 ─────────────────────────────────────── */
+        function initDrag(btn) {
+            var DRAG_THRESHOLD = 5;
+            var EDGE_SNAP_PX   = 44;
+            var DOCK_HIDE      = 0.66;
+            var STORAGE_KEY    = 'sfMolBtnPos';
+            var dragging = false, ox = 0, oy = 0, bx = 0, by = 0;
+
+            // 恢复上次位置；无记录时默认吸附左边垂直居中
+            try {
+                var s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+                if (s) { applyPos(s.left, s.top, s.docked); }
+                else   { applyPos(0, Math.round(window.innerHeight * 0.58), true); }
+            } catch (e) {
+                applyPos(0, Math.round(window.innerHeight * 0.58), true);
+            }
+
+            btn.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+            btn.addEventListener('pointerdown', function (e) {
+                if (e.button !== 0 && e.pointerType === 'mouse') return;
+                e.preventDefault();
+                if (btn.classList.contains('sf-mol-btn--docked')) {
+                    btn.classList.remove('sf-mol-btn--docked');
+                    btn.style.left = '8px';
+                    btn.style.bottom = 'auto';
+                }
+                ox = e.clientX; oy = e.clientY;
+                bx = parseFloat(btn.style.left) || btn.getBoundingClientRect().left;
+                by = parseFloat(btn.style.top)  || btn.getBoundingClientRect().top;
+                dragging = false;
+                btn.setPointerCapture(e.pointerId);
+            });
+
+            btn.addEventListener('pointermove', function (e) {
+                if (!btn.hasPointerCapture(e.pointerId)) return;
+                var dx = e.clientX - ox, dy = e.clientY - oy;
+                if (!dragging && Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
+                if (!dragging) { dragging = true; btn.classList.add('sf-mol-btn--dragging'); }
+                var w = btn.offsetWidth, h = btn.offsetHeight;
+                var left = Math.max(-(w * DOCK_HIDE), Math.min(window.innerWidth  - w * (1 - DOCK_HIDE), bx + dx));
+                var top  = Math.max(0,                Math.min(window.innerHeight - h,                    by + dy));
+                btn.style.left = left + 'px'; btn.style.top = top + 'px'; btn.style.bottom = 'auto';
+            });
+
+            btn.addEventListener('pointerup', function (e) {
+                if (!btn.hasPointerCapture(e.pointerId)) return;
+                btn.releasePointerCapture(e.pointerId);
+                btn.classList.remove('sf-mol-btn--dragging');
+                if (!dragging) { sfMolToggle(); return; }
+                dragging = false;
+                _dragEndTime = Date.now();
+                var rect   = btn.getBoundingClientRect();
+                var docked = rect.left < EDGE_SNAP_PX;
+                applyPos(rect.left, rect.top, docked);
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ left: rect.left, top: rect.top, docked: docked })); } catch(e) {}
+            });
+
+            function applyPos(left, top, docked) {
+                btn.style.bottom = 'auto';
+                btn.style.top    = top + 'px';
+                if (docked) {
+                    btn.style.left = '0px';
+                    btn.classList.add('sf-mol-btn--docked');
+                } else {
+                    btn.style.left = left + 'px';
+                    btn.classList.remove('sf-mol-btn--docked');
+                }
+            }
+        }
+
+        /* ── 聊天面板跟随悬浮球位置 ──────────────────────── */
+        function chatFollowBtn() {
+            var btn  = document.getElementById('sf-mol-btn');
+            var chat = document.getElementById('sf-mol-chat');
+            if (!btn || !chat) return;
+            var bRect = btn.getBoundingClientRect();
+            var chatW = chat.offsetWidth  || 360;
+            var chatH = chat.offsetHeight || 520;
+            var cLeft = bRect.right + 10;
+            var cTop  = bRect.top + bRect.height / 2 - chatH / 2;
+            if (cLeft + chatW > window.innerWidth  - 6) cLeft = window.innerWidth  - chatW - 6;
+            if (cLeft < 6) cLeft = 6;
+            cTop = Math.max(6, Math.min(window.innerHeight - chatH - 6, cTop));
+            chat.style.left = cLeft + 'px'; chat.style.top = cTop + 'px';
+            chat.style.bottom = 'auto'; chat.style.right = 'auto';
+        }
+
+        /* ── Toggle 开关 ─────────────────────────────────── */
+        window.sfMolToggle = function () {
+            if (Date.now() - _dragEndTime < 300) return;
+            var chat = document.getElementById('sf-mol-chat');
+            var btn  = document.getElementById('sf-mol-btn');
+            if (!chat || !btn) return;
+            var open = chat.classList.toggle('sf-mol-chat--open');
+            btn.classList.toggle('sf-mol-btn--active', open);
+            if (open) {
+                chatFollowBtn();
+                var msgs = document.getElementById('sf-mol-messages');
+                if (msgs) msgs.scrollTop = msgs.scrollHeight;
+                setTimeout(function () {
+                    var inp = document.getElementById('sf-mol-input');
+                    if (inp) inp.focus();
+                }, 80);
+            }
+        };
+
+        /* ── 快捷问题 ────────────────────────────────────── */
+        window.sfMolQuickSend = function (text) {
+            var inp = document.getElementById('sf-mol-input');
+            if (inp) { inp.value = text; }
+            sfMolSend();
+        };
+
+        /* ── 添加消息气泡 ────────────────────────────────── */
+        function appendMsg(role, content) {
+            var msgsEl = document.getElementById('sf-mol-messages');
+            if (!msgsEl) return;
+            var escaped = content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+            if (role === 'bot') {
+                msgsEl.insertAdjacentHTML('beforeend',
+                    '<div class="sf-mol-msg sf-mol-msg--bot">'
+                    + '<div class="sf-mol-avatar">' + SF_MOL_FLOW_SVG + '</div>'
+                    + '<div class="sf-mol-bubble">' + escaped + '</div>'
+                    + '</div>');
+            } else {
+                msgsEl.insertAdjacentHTML('beforeend',
+                    '<div class="sf-mol-msg sf-mol-msg--user">'
+                    + '<div class="sf-mol-bubble sf-mol-bubble--user">' + escaped + '</div>'
+                    + '</div>');
+            }
+            msgsEl.scrollTop = msgsEl.scrollHeight;
+        }
+
+        /* ── 发送消息并调用 AI 生成流程 ──────────────────── */
+        window.sfMolSend = function () {
+            var inp     = document.getElementById('sf-mol-input');
+            var sendBtn = document.getElementById('sf-mol-send');
+            if (!inp || !sendBtn) return;
+            var msg = inp.value.trim();
+            if (!msg) return;
+            inp.value = '';
+            appendMsg('user', msg);
+
+            var typingId = 'sfmolt_' + Date.now();
+            var statusId = typingId + '_s';
+            var msgsEl   = document.getElementById('sf-mol-messages');
+            msgsEl.insertAdjacentHTML('beforeend',
+                '<div class="sf-mol-msg sf-mol-msg--bot" id="' + typingId + '">'
+                + '<div class="sf-mol-avatar">' + SF_MOL_FLOW_SVG + '</div>'
+                + '<div class="sf-mol-bubble sf-mol-bubble--thinking">'
+                + '<div class="sf-mol-typing"><span></span><span></span><span></span></div>'
+                + '<span class="sf-mol-thinking-text" id="' + statusId + '">正在分析…</span>'
+                + '</div></div>');
+            msgsEl.scrollTop = msgsEl.scrollHeight;
+
+            sendBtn.disabled = true;
+            inp.disabled = true;
+
+            var statusCycle = ['正在分析…', '生成流程中…', '整理节点…'];
+            var si = 0;
+            var timer = setInterval(function () {
+                si = (si + 1) % statusCycle.length;
+                var el = document.getElementById(statusId);
+                if (el) el.textContent = statusCycle[si];
+            }, 1600);
+
+            function doCreate() {
+                var km = window.kmain;
+                if (!km || typeof km.createByAI !== 'function') {
+                    clearInterval(timer);
+                    document.getElementById(typingId) && document.getElementById(typingId).remove();
+                    appendMsg('bot', '⚠️ AI 模块尚未加载，请稍后再试。');
+                    sendBtn.disabled = false;
+                    inp.disabled = false;
+                    return;
+                }
+                try {
+                    km.createByAI(msg, function () {
+                        clearInterval(timer);
+                        document.getElementById(typingId) && document.getElementById(typingId).remove();
+                        appendMsg('bot', '✅ 流程已生成！您可以在画布上查看和编辑。');
+                        sendBtn.disabled = false;
+                        inp.disabled = false;
+                    });
+                } catch (err) {
+                    clearInterval(timer);
+                    document.getElementById(typingId) && document.getElementById(typingId).remove();
+                    appendMsg('bot', '抱歉，生成失败：' + (err.message || '未知错误') + '，请稍后重试。');
+                    sendBtn.disabled = false;
+                    inp.disabled = false;
+                }
+            }
+            // window.kmain 可能在模块加载后才就绪，稍等一下再调用
+            if (window.kmain) { doCreate(); }
+            else { setTimeout(doCreate, 500); }
+        };
+
+        /* ── 初始化 ──────────────────────────────────────── */
+        var btn  = document.getElementById('sf-mol-btn');
+        var chat = document.getElementById('sf-mol-chat');
+        if (btn) {
+            initDrag(btn);
+            document.getElementById('sf-mol-close').addEventListener('click', sfMolToggle);
+            document.getElementById('sf-mol-input').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') sfMolSend();
+            });
+        }
+    })();
+    </script>
+
+</html>

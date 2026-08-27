@@ -1,0 +1,68 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.IO;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Slickflow.MvcDemo.Controllers.Mvc
+{
+    /// <summary>
+    /// Performer for tasks
+    /// </summary>
+    public class Performer
+    {
+        public Performer(string userId, string userName)
+        {
+            UserId = userId;
+            UserName = userName;
+        }
+
+        public string UserId
+        {
+            get;
+            set;
+        }
+
+        public string UserName
+        {
+            get;
+            set;
+        }
+    }
+
+    /// <summary>
+    /// Performer list
+    /// </summary>
+    public class PerformerList : List<Performer>
+    {
+        public PerformerList()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Workflow Application Runner
+    /// </summary>
+    public class WfAppRunner
+    {
+        public string AppName { get; set; }
+        public string AppInstanceId { get; set; }
+        public string AppInstanceCode { get; set; }
+        public string ProcessId { get; set; }
+        public string Version { get; set; }
+        public string FlowStatus { get; set; }
+        public string UserId { get; set; }
+        public string UserName { get; set; }
+        public IDictionary<string, PerformerList> NextActivityPerformers { get; set; }
+    }
+
+    public class TestController : Controller
+    {
+        // GET: Test
+        public ActionResult Index()
+        {
+            return View();
+        }
+    }
+}

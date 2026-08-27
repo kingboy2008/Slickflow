@@ -1,0 +1,100 @@
+﻿import jshelper from '../script/jshelper.js'
+
+const kresource = (function () {
+    function kresource() {
+       
+    }
+
+    kresource.mxCurrentLanguageJSON = null;
+    kresource.MX_RESOURCE_LOCAL_LANGUAGE = "mx-resource-local-lang";
+    kresource.IsIE = navigator.userAgent.indexOf('MSIE') >= 0;
+    kresource.afterLocalizeCallbacks = [];
+
+    kresource.getLang = function () {
+        //get user enviroment language
+        var localLang = window.localStorage.getItem(kresource.MX_RESOURCE_LOCAL_LANGUAGE);
+        if (localLang === null || localLang === "") {
+            var lan = (kresource.IsIE) ? navigator.userLanguage : navigator.language;
+            if (lan.substring(0, 2) !== "zh")
+                window.localStorage.setItem(kresource.MX_RESOURCE_LOCAL_LANGUAGE, "en");
+            else
+                window.localStorage.setItem(kresource.MX_RESOURCE_LOCAL_LANGUAGE, "zh");
+            localLang = window.localStorage.getItem(kresource.MX_RESOURCE_LOCAL_LANGUAGE);
+        }
+        return localLang;
+    }
+
+    kresource.setLang = function (lang) {
+        window.localStorage.setItem(kresource.MX_RESOURCE_LOCAL_LANGUAGE, lang);
+    }
+
+    kresource.localize = function (path) {
+        var lang = kresource.getLang();
+        var fileName = 'resources/' + lang + ".json";
+        if (path) fileName = path + fileName;
+
+        jshelper.ajaxGet(fileName, null,
+            function (json) {
+                kresource.mxCurrentLanguageJSON = json;
+                // Localize elements with .lang class
+                $(".lang").each(function (o) {
+                    var key = $(this).attr("as");
+                    var text = json[key];
+                    if (text !== undefined) {
+                        text = unescapeHtml(text);
+                        $(this).text(text);
+                    }
+                });
+                // Localize option elements with data-lang attribute
+                $("option[data-lang]").each(function () {
+                    var key = $(this).attr("data-lang");
+                    var text = json[key];
+                    if (text !== undefined) {
+                        text = unescapeHtml(text);
+                        $(this).text(text);
+                    }
+                });
+                // Fire post-localize callbacks (e.g. tooltip title sync)
+                kresource.afterLocalizeCallbacks.forEach(function (fn) {
+                    try { fn(json); } catch (e) { console.warn('afterLocalize callback error', e); }
+                });
+            });
+
+        jshelper.ajaxGet(kconfig.webApiUrl + 'api/Language/SetLang/' + lang, null,
+            function (result) {
+                var status = result.Status;
+            }
+        );
+    }
+
+    kresource.getItem = function (key) {
+        var json = kresource.mxCurrentLanguageJSON;
+        var text = json[key];
+        if (text !== undefined) {
+            text = unescapeHtml(text);
+            return text;
+        }
+        return '';
+    }
+
+    function unescapeHtml(text) {
+        return text
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+    return kresource;
+})()
+
+export default kresource;

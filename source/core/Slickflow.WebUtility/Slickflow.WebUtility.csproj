@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <PackageId>Slickflow.WebUtility</PackageId>
+    <Version>3.5.0</Version>
+    <Title>Slickflow Web Utility</Title>
+    <Description>Web utility classes and helpers for Slickflow.NET. Provides common web-related functionality including HTTP client helpers and response handling.</Description>
+    <Product>Slickflow.NET</Product>
+    <PackageProjectUrl>https://github.com/besley/slickflow</PackageProjectUrl>
+    <Copyright>@2014-2025</Copyright>
+    <RepositoryUrl>https://github.com/besley/Slickflow.git</RepositoryUrl>
+    <Company>Hangzhou, Ligong</Company>
+    <Authors>Besley</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**\*.cs" />
+    <Compile Remove="bin\**\*.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

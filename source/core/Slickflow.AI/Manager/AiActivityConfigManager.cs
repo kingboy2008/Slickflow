@@ -1,0 +1,230 @@
+using Dapper;
+using Slickflow.Data;
+using Slickflow.AI.Entity;
+using System;
+using System.Data;
+
+
+namespace Slickflow.AI.Manager
+{
+    /// <summary>
+    /// AxConfig Manager
+    /// AI节点配置管理类
+    /// </summary>
+    public class AiActivityConfigManager : ManagerBase
+    {
+        #region  axconfig manager getdata 获取AI节点配置数据
+        public AiActivityConfigEntity GetById(int id)
+        {
+            var entity = Repository.GetById<AiActivityConfigEntity>(id);
+            return entity;
+        }
+
+        public AiActivityConfigEntity GetById(IDbConnection conn, int id, IDbTransaction trans)
+        {
+            var entity = Repository.GetById<AiActivityConfigEntity>(conn, id, trans);
+            return entity;
+        }
+
+        public AiActivityConfigEntity GetByProcessVersionActivity(string processId, string version, string activityId)
+        {
+            AiActivityConfigEntity entity = null;
+            var list = Repository.GetAll<AiActivityConfigEntity>()
+                .Where<AiActivityConfigEntity>(
+                    p => p.ProcessId == processId && p.Version == version && p.ActivityId == activityId)
+                .ToList();
+
+            if (list.Count() == 1)
+            {
+                entity = list[0];
+            }
+            return entity;
+        }
+
+        public AiActivityConfigEntity GetByProcessVersionActivity(IDbConnection conn, string processId, string version, string activityId, IDbTransaction trans)
+        {
+            AiActivityConfigEntity entity = null;
+            var list = Repository.GetAll<AiActivityConfigEntity>(conn, trans)
+                .Where<AiActivityConfigEntity>(
+                    p => p.ProcessId == processId && p.Version == version && p.ActivityId == activityId)
+                .ToList();
+
+            if (list.Count() == 1)
+            {
+                entity = list[0];
+            }
+            return entity;
+        }
+
+        public List<AiActivityConfigEntity> GetAll()
+        {
+            var list = Repository.GetAll<AiActivityConfigEntity>().ToList<AiActivityConfigEntity>();
+            return list;
+        }
+        #endregion
+
+        #region Addition, deletion, modification, and search of axconfig records 新增、更新和删除AI节点配置数据
+        public int Insert(AiActivityConfigEntity entity)
+        {
+            IDbSession session = SessionFactory.CreateSession();
+            try
+            {
+                session.BeginTrans();
+                int agentId = Insert(session.Connection, entity, session.Transaction);
+                session.Commit();
+
+                return agentId;
+            }
+            catch (System.Exception ex)
+            {
+                session.Rollback();
+                throw;
+            }
+            finally
+            {
+                session.Dispose();
+            }
+        }
+
+        public int Insert(IDbConnection conn, AiActivityConfigEntity entity, IDbTransaction trans)
+        {
+            var entityExisted = GetByProcessVersionActivity(conn, entity.ProcessId, entity.Version, entity.ActivityId, trans);
+            if (entityExisted != null)
+            {
+                throw new ApplicationException("AxConfigManager.Insert: A service record with the same process_id, version, and activity_id already exists!");
+            }
+
+            // 验证必填字段
+            if (!entity.ModelProviderId.HasValue)
+            {
+                throw new ApplicationException("AxConfigManager.Insert: ModelProviderId is required and cannot be null.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.ModelName))
+            {
+                throw new ApplicationException("AxConfigManager.Insert: ModelName is required and cannot be null or empty.");
+            }
+
+            entity.CreatedDateTime = DateTime.UtcNow;
+            return Repository.Insert<AiActivityConfigEntity>(conn, entity, trans);
+        }
+
+        
+
+        /// <summary>
+        /// Update AxConfig
+        /// 更新AI节点配置记录
+        /// </summary>
+        /// <param name="entity"></param>
+        public void Update(AiActivityConfigEntity entity)
+        {
+            IDbSession session = SessionFactory.CreateSession();
+            try
+            {
+                session.BeginTrans();
+                entity.UpdatedDateTime = DateTime.UtcNow;
+                Repository.Update<AiActivityConfigEntity>(session.Connection, entity, session.Transaction);
+
+                session.Commit();
+            }
+            catch (System.Exception)
+            {
+                session.Rollback();
+                throw;
+            }
+            finally
+            {
+                session.Dispose();
+            }
+        }
+
+        public void Update(IDbConnection conn, AiActivityConfigEntity entity, IDbTransaction trans)
+        {
+            // 验证必填字段
+            if (!entity.ModelProviderId.HasValue)
+            {
+                throw new ApplicationException("AxConfigManager.Update: ModelProviderId is required and cannot be null.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.ModelName))
+            {
+                throw new ApplicationException("AxConfigManager.Update: ModelName is required and cannot be null or empty.");
+            }
+
+            Repository.Update<AiActivityConfigEntity>(conn, entity, trans);
+        }
+
+       
+
+        /// <summary>
+        /// Delete AxConfig
+        /// 删除AI节点配置记录
+        /// </summary>
+        public void Delete(string processId, string version, string activityId)
+        {
+            IDbSession session = SessionFactory.CreateSession();
+            try
+            {
+                session.BeginTrans();
+
+                //delete axconfig data
+                string strSql = @"DELETE FROM ai_activity_config
+                                WHERE process_id=@processId AND version=@version AND activity_id=@activityId";
+
+                Repository.Execute(session.Connection, strSql,
+                    new { processId = processId, version = version, activityId = activityId },
+                    session.Transaction);
+
+                session.Commit();
+            }
+            catch (System.Exception ex)
+            {
+                session.Rollback();
+                throw;
+            }
+            finally
+            {
+                session.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Upgrade AI activity config when process version is upgraded
+        /// 升级流程版本时，同步复制 AI 节点配置记录
+        /// </summary>
+        /// <param name="conn">数据库连接</param>
+        /// <param name="processId">流程标识 process_id</param>
+        /// <param name="originVersion">原流程版本号</param>
+        /// <param name="newVersion">新流程版本号（升级后的版本）</param>
+        /// <param name="trans">数据库事务</param>
+        public void UpgradeProcessActivityConfig(IDbConnection conn,
+            string processId,
+            string originVersion,
+            string newVersion,
+            IDbTransaction trans)
+        {
+            // 读取旧版本下该流程的所有 AI 节点配置实体
+            var list = Repository.GetAll<AiActivityConfigEntity>(conn, trans)
+                .Where<AiActivityConfigEntity>(
+                    p => p.ProcessId == processId
+                        && p.Version == originVersion)
+                .ToList();
+
+            if (list.Count == 0) return;
+
+            foreach (var entity in list)
+            {
+                // 按照实体方式复制：修改实体上的版本号，再执行插入
+                // 注意：不改变 processId，本次升级仅版本变化
+                entity.Version = newVersion;
+
+                // 置空主键，确保插入为新记录（由数据库生成新 Id）
+                entity.Id = 0;
+
+                // 通过已有的 Insert 方法写入数据库，保持字段验证逻辑一致
+                Insert(conn, entity, trans);
+            }
+        }
+        #endregion
+    }
+}

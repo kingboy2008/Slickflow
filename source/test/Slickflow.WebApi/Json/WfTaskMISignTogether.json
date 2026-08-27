@@ -1,0 +1,28 @@
+﻿ //webapi: http://localhost/sfapi/api/WfTaskMISignTogether/
+    //数据库表: wf_process
+    //普通顺序流程基本测试(顺序,返签,退回,撤销等测试)
+    //流程记录Id：71
+    //流程名称：报价会签流程
+    //GUID: 9fb4bca4-5674-4181-a010-f0e730e166dd
+    //会签流程测试 
+    //price.task.multipleinstance.xml
+    //流程调用JSON格式说明：
+
+    //startup process:
+    //{"UserId":"10","UserName":"Long","AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd"}
+
+    //run process app:
+    ////运行到会签节点
+    //{"AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd","UserId":"10","UserName":"Long","NextActivityPerformers":{"36cf2479-e8ec-4936-8bcd-b38101e4664a":[{"UserId":40, "UserName": "Susan"}, {"UserId":30,"UserName":"Jack"}, {"UserId":20,"UserName":"Meilinda"}]}}
+
+    //run process app:
+    //运行会签实例节点
+    //运行串行的第一个任务
+    //{"AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd","UserId":"40","UserName":"Susan","NextActivityPerformers":{"36cf2479-e8ec-4936-8bcd-b38101e4664a":[{"UserId":30,"UserName":"Jack"}]}}
+    //运行串行的第二个任务
+    //{"AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd","UserId":"30","UserName":"Jack","NextActivityPerformers":{"36cf2479-e8ec-4936-8bcd-b38101e4664a":[{"UserId":20,"UserName":"Meilinda"}]}}
+    //运行串行的第三个任务
+    //{"AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd","UserId":"20","UserName":"Meilinda","NextActivityPerformers":{"36cf2479-e8ec-4936-8bcd-b38101e4664a":[{"UserId":10,"UserName":"Long"}]}}
+
+    //withdraw signtogether instance task
+    //{"UserId":"40","UserName":"Susan","AppName":"SamplePrice","AppInstanceId":"100","ProcessId":"9fb4bca4-5674-4181-a010-f0e730e166dd"}
